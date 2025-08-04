@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint lib/**/*.mjs bin/**/*.mjs test/**/*.mjs --fix",
-    "prepublishOnly": "echo 'Skipping tests for initial publish'"
+    "prepublishOnly": "npm test"
   },
   "keywords": [
     "claude-flow",
