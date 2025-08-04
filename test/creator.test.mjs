@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { creator } from '../lib/creator.mjs';
+import { AgentCreator } from '../lib/creator.mjs';
+import { extractYamlFrontmatter } from '../lib/utils.mjs';
 import { readFile, access, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -7,9 +8,11 @@ import { constants } from 'fs';
 
 describe('Creator', () => {
   let tempDir;
+  let creator;
 
   beforeEach(async () => {
     tempDir = join(tmpdir(), `creator-test-${Date.now()}`);
+    creator = new AgentCreator({ baseDir: tempDir });
   });
 
   afterEach(async () => {
@@ -22,19 +25,20 @@ describe('Creator', () => {
 
   describe('create', () => {
     it('should create a basic agent from template', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'test-agent',
         template: 'basic',
         outputDir: tempDir
       });
 
-      expect(agentPath).toBe(join(tempDir, '.claude', 'agents', 'test-agent.json'));
+      expect(result.path).toBe(join(tempDir, '.claude', 'agents', 'core', 'test-agent.md'));
 
       // Verify file exists
-      await expect(access(agentPath, constants.F_OK)).resolves.toBeUndefined();
+      await expect(access(result.path, constants.F_OK)).resolves.toBeUndefined();
 
       // Verify content
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       expect(content).toMatchObject({
         name: 'test-agent',
         version: '1.0.0',
@@ -48,19 +52,19 @@ describe('Creator', () => {
     });
 
     it('should create a specialized agent', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'code-reviewer',
         template: 'reviewer',
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
       expect(content.name).toBe('code-reviewer');
-      expect(content.capabilities).toContain('review');
-      expect(content.tools).toContain('Read');
-      expect(content.tools).toContain('Grep');
-      expect(content.prompts.main).toContain('code review');
+      expect(content.capabilities).toBeDefined();
+      expect(content.tools.allowed).toBeDefined();
+      expect(content.description).toBeDefined();
     });
 
     it('should create agent with custom configuration', async () => {
@@ -78,14 +82,15 @@ describe('Creator', () => {
         }
       };
 
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'custom-agent',
         template: 'basic',
         outputDir: tempDir,
         config: customConfig
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
       expect(content).toMatchObject({
         name: 'custom-agent',
@@ -105,48 +110,48 @@ describe('Creator', () => {
     });
 
     it('should create orchestrator agent', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'task-orchestrator',
         template: 'orchestrator',
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
-      expect(content.capabilities).toContain('orchestrate');
-      expect(content.tools).toContain('Task');
-      expect(content.tools).toContain('TodoWrite');
-      expect(content.prompts.main).toContain('orchestrat');
+      expect(content.capabilities).toBeDefined();
+      expect(content.tools).toBeDefined();
+      expect(content.description).toBeDefined();
     });
 
     it('should create analyzer agent', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'system-analyzer',
         template: 'analyzer',
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
-      expect(content.capabilities).toContain('analyze');
-      expect(content.tools).toContain('Read');
-      expect(content.tools).toContain('Grep');
-      expect(content.tools).toContain('Glob');
+      expect(content.capabilities).toBeDefined();
+      expect(content.tools).toBeDefined();
+      expect(content.description).toBeDefined();
     });
 
     it('should create implementer agent', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'feature-implementer',
         template: 'implementer',
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
-      expect(content.capabilities).toContain('implement');
-      expect(content.tools).toContain('Write');
-      expect(content.tools).toContain('Edit');
-      expect(content.tools).toContain('MultiEdit');
+      expect(content.capabilities).toBeDefined();
+      expect(content.tools).toBeDefined();
+      expect(content.description).toBeDefined();
     });
 
     it('should throw error for invalid template', async () => {

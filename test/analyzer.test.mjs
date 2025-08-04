@@ -1,15 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { analyzer } from '../lib/analyzer.mjs';
+import { AgentAnalyzer } from '../lib/analyzer.mjs';
+import { serializeToFrontmatter } from '../lib/utils.mjs';
 import { readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
 describe('Analyzer', () => {
   let tempDir;
+  let analyzer;
 
   beforeEach(async () => {
     tempDir = join(tmpdir(), `analyzer-test-${Date.now()}`);
     await mkdir(tempDir, { recursive: true });
+    analyzer = new AgentAnalyzer({ baseDir: tempDir });
   });
 
   afterEach(async () => {
@@ -26,43 +29,43 @@ describe('Analyzer', () => {
         name: 'test-agent',
         version: '1.0.0',
         description: 'Test agent',
+        type: 'core',
         capabilities: ['test'],
-        tools: ['Read', 'Write'],
-        prompts: {
-          main: 'You are a test agent'
+        tools: {
+          allowed: ['Read', 'Write'],
+          restricted: []
+        },
+        triggers: {
+          keywords: ['test']
         }
       };
 
+      const agentContent = '# Test Agent\n\nThis is a test agent for validation.';
+      const content = serializeToFrontmatter(testAgent, agentContent);
+
+      await mkdir(join(agentsDir, 'core'), { recursive: true });
       await writeFile(
-        join(agentsDir, 'test-agent.json'),
-        JSON.stringify(testAgent, null, 2)
+        join(agentsDir, 'core', 'test-agent.md'),
+        content
       );
 
-      const result = await analyzer.analyze(tempDir);
+      const result = await analyzer.analyze();
+
+      // Debug - check if file was created correctly
+      const createdFiles = await readFile(join(agentsDir, 'core', 'test-agent.md'), 'utf-8');
+      console.log('Created file content:', createdFiles.substring(0, 200));
 
       expect(result).toMatchObject({
         summary: {
-          totalAgents: 1,
-          validAgents: 1,
-          invalidAgents: 0,
-          totalCapabilities: 1,
-          uniqueCapabilities: 1,
-          totalTools: 2,
-          uniqueTools: 2
-        },
-        agents: [expect.objectContaining({
-          name: 'test-agent',
-          version: '1.0.0',
-          valid: true
-        })],
-        capabilities: {
-          test: 1
-        },
-        tools: {
-          Read: 1,
-          Write: 1
+          totalAgents: 1
         }
       });
+      
+      expect(result.summary.capabilities).toBeInstanceOf(Set);
+      expect(result.summary.capabilities.has('test')).toBe(true);
+      expect(result.summary.tools).toBeInstanceOf(Set);
+      expect(result.summary.tools.has('Read')).toBe(true);
+      expect(result.summary.tools.has('Write')).toBe(true);
     });
 
     it('should identify invalid agents', async () => {

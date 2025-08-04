@@ -30,13 +30,19 @@ program
       
       if (agentName && agentName !== '*') {
         // Validate specific agent
-        const result = await validator.validateAgent(
-          join(process.cwd(), '.claude', 'agents', `${agentName}.json`)
+        const result = await validator.validateFile(
+          join(process.cwd(), '.claude', 'agents', `${agentName}.md`)
         );
-        results = { results: [{ name: agentName, ...result }] };
+        results = { 
+          total: 1,
+          valid: result.status === 'valid' ? 1 : 0,
+          warnings: result.status === 'warning' ? 1 : 0,
+          errors: result.status === 'error' ? 1 : 0,
+          details: [result]
+        };
       } else {
         // Validate all agents
-        results = await validator.validateAll(process.cwd());
+        results = await validator.validateAll();
       }
       
       spinner.stop();
@@ -46,21 +52,26 @@ program
       } else {
         let hasErrors = false;
         
-        for (const result of results.results) {
-          if (result.valid) {
-            console.log(chalk.green(`✓ ${result.name}`));
-          } else {
-            hasErrors = true;
-            console.log(chalk.red(`✗ ${result.name}`));
-            result.errors.forEach(error => {
-              console.log(chalk.red(`  - ${error.field}: ${error.message}`));
-            });
+        if (results.details) {
+          const report = validator.generateReport(results, 'text');
+          console.log(report);
+        } else {
+          for (const result of results.details || []) {
+            if (result.status === 'valid') {
+              console.log(chalk.green(`✓ ${result.agent_name}`));
+            } else {
+              hasErrors = true;
+              console.log(chalk.red(`✗ ${result.agent_name}`));
+              result.errors.forEach(error => {
+                console.log(chalk.red(`  - ${error}`));
+              });
+            }
           }
         }
         
         console.log();
         if (hasErrors) {
-          console.log(chalk.red(`${results.results.filter(r => !r.valid).length} validation errors found`));
+          console.log(chalk.red(`${results.details ? results.details.filter(r => r.status === 'error').length : results.errors || 0} validation errors found`));
           process.exit(1);
         } else {
           console.log(chalk.green('All agents are valid!'));
@@ -86,13 +97,19 @@ program
       let results;
       
       if (options.all || agentName === '*') {
-        results = await fixer.fixAll(process.cwd(), { dryRun: options.dryRun });
+        results = await fixer.fixAll({ dryRun: options.dryRun });
       } else if (agentName) {
-        const result = await fixer.fixSingle(
-          join(process.cwd(), '.claude', 'agents', `${agentName}.json`),
+        const result = await fixer.fixFile(
+          join(process.cwd(), '.claude', 'agents', `${agentName}.md`),
           { dryRun: options.dryRun }
         );
-        results = { results: [result] };
+        results = { 
+          total: 1,
+          fixed: result.fixed ? 1 : 0,
+          skipped: !result.fixed && !result.error ? 1 : 0,
+          errors: result.error ? 1 : 0,
+          details: [result]
+        };
       } else {
         spinner.stop();
         console.error(chalk.red('Please specify an agent name or use --all'));
@@ -101,8 +118,8 @@ program
       
       spinner.stop();
       
-      const fixed = results.results.filter(r => r.fixed).length;
-      const wouldFix = results.results.filter(r => r.wouldFix).length;
+      const fixed = results.details ? results.details.filter(r => r.fixed).length : results.fixed || 0;
+      const wouldFix = results.details ? results.details.filter(r => r.fixes && r.fixes.length > 0).length : 0;
       
       if (options.dryRun) {
         console.log(chalk.yellow(`Would fix ${wouldFix} agents`));
@@ -110,15 +127,19 @@ program
         console.log(chalk.green(`Fixed ${fixed} agents`));
       }
       
-      results.results.forEach(result => {
-        if (result.fixed || result.wouldFix) {
-          const prefix = options.dryRun ? 'Would fix' : 'Fixed';
-          console.log(chalk.green(`${prefix} ${result.name}:`));
-          result.changes.forEach(change => {
-            console.log(`  - ${change}`);
-          });
-        }
-      });
+      if (results.details) {
+        results.details.forEach(result => {
+          if (result.fixed || (result.fixes && result.fixes.length > 0)) {
+            const prefix = options.dryRun ? 'Would fix' : 'Fixed';
+            console.log(chalk.green(`${prefix} ${result.relativePath}:`));
+            if (result.fixes) {
+              result.fixes.forEach(fix => {
+                console.log(`  - ${fix}`);
+              });
+            }
+          }
+        });
+      }
     } catch (error) {
       spinner.stop();
       console.error(chalk.red(`Error: ${error.message}`));
