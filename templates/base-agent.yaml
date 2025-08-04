@@ -1,0 +1,196 @@
+---
+# Agent Configuration Template
+# Copy this template and fill in the values for your agent
+
+name: agent-name           # kebab-case identifier
+type: core                 # one of: core, swarm, consensus, github, testing, etc.
+color: '#FF6B35'          # hex color code
+description: Description of what this agent does
+version: 1.0.0            # semantic version
+priority: medium          # high, medium, or low
+
+# Agent capabilities - what this agent can do
+capabilities:
+  - capability_1
+  - capability_2
+  - capability_3
+
+# Activation triggers
+triggers:
+  keywords:               # Natural language triggers
+    - keyword1
+    - keyword2
+  patterns:               # Regex patterns
+    - 'pattern.*'
+    - '.*pattern.*'
+  file_patterns:          # File patterns to monitor
+    - '*.js'
+    - '*.ts'
+  context_patterns:       # Context-based activation
+    - context1
+    - context2
+
+# Tool access configuration
+tools:
+  allowed:                # Tools this agent can use
+    - Read
+    - Write
+    - Edit
+    - Grep
+    - Glob
+  restricted:             # Tools this agent cannot use
+    - Task
+    - Bash
+  conditional:            # Conditional tool access
+    - tool: Bash
+      condition: 'command.includes("npm test")'
+      allowed: true
+
+# Execution constraints
+constraints:
+  max_file_operations: 100
+  max_execution_time: 600
+  allowed_paths:
+    - src/**
+    - docs/**
+  forbidden_paths:
+    - node_modules/**
+    - .env*
+    - secrets/**
+    - '*.key'
+    - '*.pem'
+  max_file_size: 1048576      # 1MB
+  max_concurrent_operations: 5
+
+# Communication configuration
+communication:
+  can_spawn:                  # Agents this can create
+    - child-agent-1
+    - child-agent-2
+  can_delegate_to:           # Agents this can delegate work to
+    - peer-agent-1
+    - peer-agent-2
+  requires_approval_from:    # Agents that must approve actions
+    - supervisor-agent
+  shares_context_with:       # Agents that share context
+    - related-agent-1
+    - related-agent-2
+  handoff_protocol:
+    required_artifacts:      # What must be provided on handoff
+      - task-specification
+      - context-data
+    validation_steps:        # Steps to validate handoff
+      - verify-prerequisites
+      - check-permissions
+
+# Dependencies
+dependencies:
+  requires:                  # Required dependencies
+    - name: dependency-1
+      version: '>=1.0.0'
+      optional: false
+  provides:                  # What this agent provides
+    - capability: service-name
+      interface: v1
+  conflicts:                 # Conflicting agents
+    - agent: conflicting-agent
+      reason: incompatible-approach
+
+# Resource configuration
+resources:
+  memory_limit: 512MB
+  cpu_quota: 1000m
+  execution_timeout: 600s
+  concurrent_operations: 5
+
+# Execution settings
+execution:
+  parallelization:
+    enabled: true
+    max_concurrent: 3
+    strategy: adaptive       # adaptive, fixed, or dynamic
+  batching:
+    enabled: true
+    batch_size: 10
+    timeout: 30s
+
+# Security configuration
+security:
+  sandboxing:
+    enabled: true
+    type: process           # process, container, or vm
+    restrictions:
+      network: limited      # none, limited, or full
+      filesystem: restricted # read-only, restricted, or full
+  audit:
+    enabled: true
+    events:                 # Events to audit
+      - tool-usage
+      - file-operations
+      - security-violations
+    retention: 30d
+
+# Monitoring configuration
+monitoring:
+  health_checks:
+    enabled: true
+    interval: 30s
+  metrics:                  # Metrics to collect
+    - name: execution_time
+      type: histogram
+    - name: success_rate
+      type: gauge
+    - name: operations_count
+      type: counter
+    - name: error_rate
+      type: gauge
+
+# Execution hooks
+hooks:
+  pre: |
+    # Pre-execution script
+    echo "🤖 Starting ${AGENT_NAME} for task: $TASK"
+    # Validate prerequisites
+    # Load configuration
+    # Initialize resources
+  post: |
+    # Post-execution script
+    echo "✅ ${AGENT_NAME} completed task: $TASK"
+    # Clean up resources
+    # Store results
+    # Update metrics
+---
+
+# Agent Documentation
+
+## Purpose
+[Describe the agent's primary purpose and use cases]
+
+## Core Responsibilities
+1. [Responsibility 1]
+2. [Responsibility 2]
+3. [Responsibility 3]
+
+## Usage Examples
+```bash
+# Example 1: Basic usage
+[command or trigger]
+
+# Example 2: Advanced usage
+[command or trigger with options]
+```
+
+## Integration Points
+- Works with: [list of compatible agents]
+- Provides: [what this agent offers to others]
+- Requires: [what this agent needs from others]
+
+## Best Practices
+1. [Best practice 1]
+2. [Best practice 2]
+3. [Best practice 3]
+
+## Troubleshooting
+- **Issue 1**: [Description and solution]
+- **Issue 2**: [Description and solution]
+- **Issue 3**: [Description and solution]

@@ -1,0 +1,51 @@
+{
+  "name": "@claude-flow/agent-toolkit",
+  "version": "1.0.0",
+  "description": "Comprehensive toolkit for validating and managing Claude Flow agent systems",
+  "type": "module",
+  "main": "lib/index.mjs",
+  "bin": {
+    "agent-toolkit": "./bin/cli.mjs"
+  },
+  "scripts": {
+    "validate": "node bin/cli.mjs validate",
+    "fix": "node bin/cli.mjs fix",
+    "analyze": "node bin/cli.mjs analyze",
+    "create": "node bin/cli.mjs create",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint lib/**/*.mjs bin/**/*.mjs test/**/*.mjs --fix",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "claude-flow",
+    "agents",
+    "validation",
+    "automation",
+    "ai-orchestration"
+  ],
+  "author": "Claude Flow Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teemulinna/agent-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teemulinna/agent-toolkit/issues"
+  },
+  "homepage": "https://github.com/teemulinna/agent-toolkit#readme",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "js-yaml": "^4.1.0",
+    "ora": "^7.0.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
