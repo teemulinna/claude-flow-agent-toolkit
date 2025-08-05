@@ -7,10 +7,11 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 # Claude-flow -specific directories
-.claude/
+.claude
 .claude-flow/
 .claude-flow/metrics/
 .swarm/
+test-debug
 
 # GitHub
 .github/
