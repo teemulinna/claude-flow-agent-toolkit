@@ -95,13 +95,19 @@ program
                 console.log(report);
             }
             
-            // Show summary
-            const successRate = Math.round((results.valid / results.total) * 100);
-            console.log('\n' + chalk.bold('Summary:'));
-            console.log(chalk.green(`✅ Valid: ${results.valid}`));
-            console.log(chalk.yellow(`⚠️  Warnings: ${results.warnings}`));
-            console.log(chalk.red(`❌ Errors: ${results.errors}`));
-            console.log(chalk.blue(`📊 Success Rate: ${successRate}%`));
+            // Show summary only for non-JSON formats
+            if (options.format !== 'json') {
+                const successRate = Math.round((results.valid / results.total) * 100);
+                console.log('\n' + chalk.bold('Summary:'));
+                console.log(chalk.green(`✅ Valid: ${results.valid}`));
+                console.log(chalk.yellow(`⚠️  Warnings: ${results.warnings}`));
+                console.log(chalk.red(`❌ Errors: ${results.errors}`));
+                console.log(chalk.blue(`📊 Success Rate: ${successRate}%`));
+                
+                if (results.errors > 0) {
+                    console.log(chalk.red('\nvalidation errors found'));
+                }
+            }
             
             process.exit(results.errors > 0 ? 1 : 0);
         } catch (error) {
@@ -164,9 +170,15 @@ program
             }
             
             console.log(chalk.bold('\nFix Results:'));
-            console.log(chalk.green(`✅ Fixed: ${results.fixed || results.total || 0}`));
+            const fixedCount = results.fixed || results.total || 0;
+            console.log(chalk.green(`✅ Fixed: ${fixedCount}`));
             console.log(chalk.blue(`⏭️  Skipped: ${results.skipped || 0}`));
             console.log(chalk.red(`❌ Errors: ${results.errors || 0}`));
+            
+            // Add agent count message
+            if (fixedCount > 0) {
+                console.log(chalk.green(`\nFixed ${fixedCount} agent${fixedCount === 1 ? '' : 's'}`));
+            }
             
             if (options.verbose && results.details) {
                 console.log('\nDetails:');
@@ -175,6 +187,15 @@ program
                         console.log(`\n${chalk.green('✅')} ${detail.relativePath}`);
                         detail.fixes.forEach(fix => console.log(`   • ${fix}`));
                     }
+                }
+            }
+            
+            // For single agent fix, show agent name
+            if (agentName && results.details && results.details.length === 1) {
+                const detail = results.details[0];
+                const name = detail.agent_name || agentName;
+                if (name) {
+                    console.log(`\n${chalk.blue('Agent:')} ${name}`);
                 }
             }
             
@@ -240,7 +261,7 @@ program
         if (options.listTemplates) {
             const creator = new AgentCreator();
             const templates = creator.listTemplates();
-            console.log(chalk.bold('Available Templates:'));
+            console.log(chalk.bold('Available templates:'));
             templates.forEach(template => {
                 console.log(`  • ${template}`);
             });
@@ -251,14 +272,15 @@ program
             
             // Handle prompt-based creation
             if (options.prompt) {
-                const result = await creator.createFromPrompt({
+                const agentPath = await creator.createFromPrompt({
                     prompt: options.prompt,
                     name,
                     outputDir: options.dir,
                     force: options.force
                 });
                 console.log(chalk.green(`✅ Created agent from prompt`));
-                console.log(chalk.blue(`📁 Path: ${result}`));
+                console.log(chalk.blue(`📁 Path: ${agentPath}`));
+                console.log(chalk.blue(`🏷️  Name: ${name}`));
                 return;
             }
             
@@ -409,5 +431,4 @@ program.parse(process.argv);
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
     program.outputHelp();
-    process.exit(0);
 }

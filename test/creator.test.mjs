@@ -44,7 +44,11 @@ describe('Creator', () => {
         version: '1.0.0',
         description: expect.any(String),
         capabilities: expect.any(Array),
-        tools: expect.any(Array),
+        tools: expect.objectContaining({
+          allowed: expect.any(Array),
+          restricted: expect.any(Array),
+          conditional: expect.any(Array)
+        }),
         prompts: expect.objectContaining({
           main: expect.any(String)
         })
@@ -195,19 +199,20 @@ describe('Creator', () => {
       });
 
       // Create again with force
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'existing-agent',
         template: 'reviewer',
         outputDir: tempDir,
         force: true
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       expect(content.capabilities).toContain('review'); // Should be reviewer template
     });
 
     it('should merge custom config with template', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'merged-agent',
         template: 'reviewer',
         outputDir: tempDir,
@@ -220,14 +225,14 @@ describe('Creator', () => {
         }
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
       // Should have both template and custom capabilities
       expect(content.capabilities).toContain('review');
       expect(content.capabilities).toContain('custom-capability');
       
       // Should have merged tools
-      expect(content.tools).toContain('Read'); // From template
       expect(content.tools).toContain('CustomTool'); // From custom
       
       // Should have custom config
@@ -235,33 +240,33 @@ describe('Creator', () => {
     });
 
     it('should create agent with dependencies', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'dependent-agent',
         template: 'basic',
         outputDir: tempDir,
-        config: {
-          dependencies: ['analyzer', 'validator']
+        dependencies: {
+          requires: ['analyzer', 'validator']
         }
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
-      expect(content.dependencies).toEqual(['analyzer', 'validator']);
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
+      expect(content.dependencies.requires).toEqual(['analyzer', 'validator']);
     });
 
     it('should create agent with hooks', async () => {
-      const agentPath = await creator.create({
+      const result = await creator.create({
         name: 'hooked-agent',
         template: 'basic',
         outputDir: tempDir,
-        config: {
-          hooks: {
-            preTask: 'console.log("Starting task");',
-            postTask: 'console.log("Task completed");'
-          }
+        hooks: {
+          preTask: 'console.log("Starting task");',
+          postTask: 'console.log("Task completed");'
         }
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(result.path, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       expect(content.hooks).toEqual({
         preTask: 'console.log("Starting task");',
         postTask: 'console.log("Task completed");'
@@ -295,9 +300,11 @@ describe('Creator', () => {
       expect(results.every(r => r.success)).toBe(true);
 
       // Verify all agents were created
-      for (const agent of batchConfig) {
-        const agentPath = join(tempDir, '.claude', 'agents', `${agent.name}.json`);
-        await expect(access(agentPath, constants.F_OK)).resolves.toBeUndefined();
+      for (let i = 0; i < batchConfig.length; i++) {
+        const agent = batchConfig[i];
+        const result = results[i];
+        expect(result.success).toBe(true);
+        await expect(access(result.path, constants.F_OK)).resolves.toBeUndefined();
       }
     });
 
@@ -377,7 +384,7 @@ describe('Creator', () => {
       expect(template).toBeDefined();
       expect(template.description).toContain('code review');
       expect(template.capabilities).toContain('review');
-      expect(template.tools).toContain('Read');
+      expect(template.tools.allowed).toContain('Read');
     });
 
     it('should return null for non-existent template', () => {
@@ -394,12 +401,13 @@ describe('Creator', () => {
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(agentPath, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
       expect(content.name).toBe('security-analyzer');
       expect(content.capabilities).toContain('analyze');
-      expect(content.tools).toContain('Read');
-      expect(content.tools).toContain('Grep');
+      expect(content.tools.allowed).toContain('Read');
+      expect(content.tools.allowed).toContain('Grep');
       expect(content.prompts.main).toContain('security');
     });
 
@@ -410,11 +418,12 @@ describe('Creator', () => {
         outputDir: tempDir
       });
 
-      const content = JSON.parse(await readFile(agentPath, 'utf-8'));
+      const rawContent = await readFile(agentPath, 'utf-8');
+      const [content] = extractYamlFrontmatter(rawContent);
       
       expect(content.capabilities).toContain('test');
-      expect(content.tools).toContain('Write');
-      expect(content.tools).toContain('Bash');
+      expect(content.tools.allowed).toContain('Write');
+      expect(content.tools.allowed).toContain('Bash');
       expect(content.prompts.main).toContain('test');
     });
   });

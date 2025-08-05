@@ -10,6 +10,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const cliPath = join(__dirname, '..', 'bin', 'cli.mjs');
 
+// Helper to create a valid agent configuration
+const createValidAgent = (overrides = {}) => ({
+  name: 'test-agent',
+  type: 'core',
+  color: '#FF6B35',
+  version: '1.0.0',
+  description: 'Test agent',
+  priority: 'medium',
+  capabilities: ['test'],
+  triggers: { keywords: ['test'] },
+  tools: { allowed: ['Read'], restricted: ['Task'], conditional: [] },
+  constraints: { max_file_operations: 100 },
+  communication: { can_spawn: [] },
+  dependencies: { requires: [] },
+  resources: { memory_limit: '512MB' },
+  execution: { parallelization: { enabled: true } },
+  security: { sandboxing: { enabled: true } },
+  monitoring: { enabled: true },
+  hooks: {},
+  prompts: { main: 'Test agent' },
+  ...overrides
+});
+
 describe('CLI', () => {
   let tempDir;
   
@@ -69,16 +92,7 @@ describe('CLI', () => {
       const agentsDir = join(tempDir, '.claude', 'agents');
       await mkdir(agentsDir, { recursive: true });
 
-      const validAgent = {
-        name: 'test-agent',
-        version: '1.0.0',
-        description: 'Test agent',
-        capabilities: ['test'],
-        tools: ['Read'],
-        prompts: {
-          main: 'You are a test agent'
-        }
-      };
+      const validAgent = createValidAgent();
 
       await writeFile(
         join(agentsDir, 'test-agent.json'),
@@ -117,14 +131,7 @@ describe('CLI', () => {
       const agentsDir = join(tempDir, '.claude', 'agents');
       await mkdir(agentsDir, { recursive: true });
 
-      const agent = {
-        name: 'specific-agent',
-        version: '1.0.0',
-        description: 'Specific agent',
-        capabilities: ['test'],
-        tools: ['Read'],
-        prompts: { main: 'Test' }
-      };
+      const agent = createValidAgent({ name: 'specific-agent', description: 'Specific agent' });
 
       await writeFile(
         join(agentsDir, 'specific-agent.json'),
@@ -140,14 +147,7 @@ describe('CLI', () => {
       const agentsDir = join(tempDir, '.claude', 'agents');
       await mkdir(agentsDir, { recursive: true });
 
-      const agent = {
-        name: 'json-test',
-        version: '1.0.0',
-        description: 'JSON test',
-        capabilities: ['test'],
-        tools: ['Read'],
-        prompts: { main: 'Test' }
-      };
+      const agent = createValidAgent({ name: 'json-test', description: 'JSON test' });
 
       await writeFile(
         join(agentsDir, 'json-test.json'),
@@ -237,22 +237,18 @@ describe('CLI', () => {
       await mkdir(agentsDir, { recursive: true });
 
       const agents = [
-        {
+        createValidAgent({
           name: 'agent-1',
-          version: '1.0.0',
           description: 'Agent 1',
           capabilities: ['code', 'review'],
-          tools: ['Read', 'Write'],
-          prompts: { main: 'Agent 1' }
-        },
-        {
+          tools: { allowed: ['Read', 'Write'], restricted: ['Task'], conditional: [] }
+        }),
+        createValidAgent({
           name: 'agent-2',
-          version: '1.0.0',
           description: 'Agent 2',
           capabilities: ['test'],
-          tools: ['Bash'],
-          prompts: { main: 'Agent 2' }
-        }
+          tools: { allowed: ['Bash'], restricted: ['Task'], conditional: [] }
+        })
       ];
 
       for (const agent of agents) {
@@ -274,14 +270,7 @@ describe('CLI', () => {
       const agentsDir = join(tempDir, '.claude', 'agents');
       await mkdir(agentsDir, { recursive: true });
 
-      const agent = {
-        name: 'analyze-json',
-        version: '1.0.0',
-        description: 'Test',
-        capabilities: ['test'],
-        tools: ['Read'],
-        prompts: { main: 'Test' }
-      };
+      const agent = createValidAgent({ name: 'analyze-json' });
 
       await writeFile(
         join(agentsDir, 'analyze-json.json'),
@@ -302,14 +291,7 @@ describe('CLI', () => {
       const agentsDir = join(tempDir, '.claude', 'agents');
       await mkdir(agentsDir, { recursive: true });
 
-      const agent = {
-        name: 'save-analysis',
-        version: '1.0.0',
-        description: 'Test',
-        capabilities: ['test'],
-        tools: ['Read'],
-        prompts: { main: 'Test' }
-      };
+      const agent = createValidAgent({ name: 'save-analysis' });
 
       await writeFile(
         join(agentsDir, 'save-analysis.json'),
@@ -385,14 +367,10 @@ describe('CLI', () => {
       const agents = ['agent-a', 'agent-b', 'agent-c'];
       
       for (const name of agents) {
-        const agent = {
+        const agent = createValidAgent({ 
           name,
-          version: '1.0.0',
-          description: `${name} description`,
-          capabilities: ['test'],
-          tools: ['Read'],
-          prompts: { main: 'Test' }
-        };
+          description: `${name} description`
+        });
         
         await writeFile(
           join(agentsDir, `${name}.json`),
