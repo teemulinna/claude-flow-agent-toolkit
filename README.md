@@ -1,9 +1,9 @@
 # Claude Flow Agent Toolkit
 
-[![npm version](https://badge.fury.io/js/@claude-flow%2Fagent-toolkit.svg)](https://www.npmjs.com/package/@claude-flow/agent-toolkit)
+[![npm version](https://badge.fury.io/js/@aigentics%2Fagent-toolkit.svg)](https://www.npmjs.com/package/@aigentics/agent-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js CI](https://github.com/claude-flow/agent-toolkit/actions/workflows/node.js.yml/badge.svg)](https://github.com/claude-flow/agent-toolkit/actions/workflows/node.js.yml)
-[![codecov](https://codecov.io/gh/claude-flow/agent-toolkit/branch/main/graph/badge.svg)](https://codecov.io/gh/claude-flow/agent-toolkit)
+[![Node.js CI](https://github.com/teemulinna/agent-toolkit/actions/workflows/node.js.yml/badge.svg)](https://github.com/teemulinna/agent-toolkit/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/teemulinna/agent-toolkit/branch/main/graph/badge.svg)](https://codecov.io/gh/teemulinna/agent-toolkit)
 
 > 🤖 A comprehensive toolkit for validating, fixing, and managing Claude Flow AI agent systems
 
@@ -18,13 +18,13 @@
 ## Installation
 
 ```bash
-npm install @claude-flow/agent-toolkit
+npm install @aigentics/agent-toolkit
 ```
 
 Or use directly with npx:
 
 ```bash
-npx @claude-flow/agent-toolkit validate
+npx @aigentics/agent-toolkit validate
 ```
 
 ## Usage
@@ -98,7 +98,7 @@ import {
     AgentFixer, 
     AgentAnalyzer, 
     AgentCreator 
-} from '@claude-flow/agent-toolkit';
+} from '@aigentics/agent-toolkit';
 
 // Validate agents
 const validator = new AgentValidator({
