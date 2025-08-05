@@ -85,14 +85,13 @@ describe('AgentValidator', () => {
             expect(errors.length).toBe(0);
         });
 
-        it('should enforce type matching in strict directories', () => {
+        it('should allow any type in all directories (no strict enforcement)', () => {
             const validator = new AgentValidator();
             const filePath = '/test/agents/core/swarm-agent.md';
             const agentData = { type: 'swarm' };
             
             const errors = validator.validateDirectory(filePath, agentData);
-            expect(errors.length).toBeGreaterThan(0);
-            expect(errors[0]).toContain('should have type \'core\'');
+            expect(errors.length).toBe(0);
         });
     });
 

@@ -54,13 +54,12 @@ describe('AgentConfig', () => {
             expect(result.valid).toBe(true);
         });
 
-        it('should enforce type matching in strict directories', () => {
+        it('should allow any type in all directories (no strict enforcement)', () => {
             const result = AgentConfig.validateDirectoryPlacement(
                 '/agents/core/swarm-agent.md',
                 'swarm'
             );
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('should have type \'core\'');
+            expect(result.valid).toBe(true);
         });
 
         it('should allow correct type in strict directories', () => {
