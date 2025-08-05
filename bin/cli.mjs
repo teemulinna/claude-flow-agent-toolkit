@@ -41,8 +41,6 @@ program
     .option('-o, --output <file>', 'Output file')
     .option('-v, --verbose', 'Verbose output')
     .action(async (agentName, options) => {
-        const spinner = ora('Validating agents...').start();
-        
         try {
             const validator = new AgentValidator({
                 agentsDir: path.resolve(options.dir),
@@ -64,7 +62,7 @@ program
                         await fs.access(jsonPath);
                         filePath = jsonPath;
                     } catch {
-                        spinner.fail(`Agent ${agentName} not found`);
+                        console.log(`Agent ${agentName} not found`);
                         process.exit(1);
                     }
                 }
@@ -82,7 +80,6 @@ program
                 // Validate all agents (when no name specified or * wildcard)
                 results = await validator.validateAll();
             }
-            spinner.stop();
             
             // Generate report
             const report = validator.generateReport(results, options.format);
@@ -111,8 +108,7 @@ program
             
             process.exit(results.errors > 0 ? 1 : 0);
         } catch (error) {
-            spinner.fail('Validation failed');
-            console.error(chalk.red(error.message));
+            console.log(error.message);
             process.exit(1);
         }
     });
@@ -244,7 +240,7 @@ program
 
 // Create command with additional options
 program
-    .command('create <name>')
+    .command('create [name]')
     .description('Create a new agent')
     .option('-t, --type <type>', 'Agent type', 'core')
     .option('-d, --description <description>', 'Agent description')
@@ -267,6 +263,13 @@ program
             });
             process.exit(0);
         }
+        
+        // Check if name is required for other operations
+        if (!name && !options.listTemplates) {
+            console.error(chalk.red('Agent name is required'));
+            process.exit(1);
+        }
+        
         try {
             const creator = new AgentCreator();
             
@@ -290,7 +293,8 @@ program
                 description: options.description,
                 capabilities: options.capabilities ? options.capabilities.split(',').map(c => c.trim()) : [],
                 directory: options.dir,
-                template: options.template
+                template: options.template,
+                force: options.force
             };
             
             // Add tools if specified
@@ -309,7 +313,8 @@ program
                 const result = await creator.createFromTemplate(options.template, {
                     name,
                     description: options.description,
-                    directory: options.dir
+                    directory: options.dir,
+                    force: options.force
                 });
                 
                 console.log(chalk.green(`✅ Created agent from template: ${options.template}`));
@@ -361,22 +366,11 @@ program
             }
             }
             
-            // Check if agent already exists
-            if (!options.force) {
-                const baseDir = creator.baseDir;
-                const agentPath = path.join(baseDir, '.claude/agents', createOptions.directory || 'core', `${name}.md`);
-                try {
-                    await fs.access(agentPath);
-                    console.error(chalk.red(`❌ Agent ${name} already exists at ${agentPath}`));
-                    process.exit(1);
-                } catch {
-                    // Agent doesn't exist, proceed
-                }
-            }
+            // Let the creator handle duplicate checking with force flag
             
             const result = await creator.create(createOptions);
             
-            console.log(chalk.green(`✅ Created agent successfully!`));
+            console.log(chalk.green(`Created agent successfully!`));
             console.log(chalk.blue(`📁 Path: ${result.relativePath}`));
             console.log(chalk.blue(`🏷️  Name: ${result.name}`));
             console.log(chalk.blue(`🎯 Type: ${result.type}`));
@@ -425,10 +419,29 @@ program
         }
     });
 
-// Parse command line arguments
-program.parse(process.argv);
-
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
     program.outputHelp();
+    process.exit(0);
+}
+
+// Add error handlers
+program.exitOverride();
+
+// Handle unknown commands
+program.on('command:*', () => {
+    console.error(chalk.red('Unknown command'));
+    process.exit(1);
+});
+
+// Parse command line arguments
+try {
+    program.parse(process.argv);
+} catch (err) {
+    if (err.exitCode === 0) {
+        process.exit(0);
+    } else {
+        console.error(chalk.red(err.message));
+        process.exit(1);
+    }
 }

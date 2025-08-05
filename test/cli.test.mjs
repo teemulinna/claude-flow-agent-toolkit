@@ -56,7 +56,7 @@ describe('CLI', () => {
     } catch (error) {
       return { 
         success: false, 
-        output: error.stdout || '', 
+        output: (error.stdout || '') + (error.stderr || ''), 
         error: error.stderr || error.message 
       };
     }
