@@ -1,6 +1,6 @@
 {
   "name": "@aigentics/agent-toolkit",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Comprehensive toolkit for validating and managing Claude Flow agent systems",
   "type": "module",
   "main": "src/index.mjs",
