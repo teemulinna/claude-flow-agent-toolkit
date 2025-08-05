@@ -171,6 +171,13 @@ program
             console.log(chalk.blue(`⏭️  Skipped: ${results.skipped || 0}`));
             console.log(chalk.red(`❌ Errors: ${results.errors || 0}`));
             
+            // Show file counts
+            const mdCount = results.details ? results.details.filter(d => d.file && d.file.endsWith('.md')).length : 0;
+            const jsonCount = results.details ? results.details.filter(d => d.file && d.file.endsWith('.json')).length : 0;
+            if (mdCount > 0 || jsonCount > 0) {
+                console.log(chalk.gray(`\n📄 Files processed: ${mdCount} markdown, ${jsonCount} JSON`));
+            }
+            
             // Add agent count message
             if (fixedCount > 0) {
                 console.log(chalk.green(`\nFixed ${fixedCount} agent${fixedCount === 1 ? '' : 's'}`));
