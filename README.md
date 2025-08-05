@@ -171,22 +171,30 @@ All agents must have these fields in their YAML frontmatter:
 
 ### Directory Organization
 
-#### Strict Type Directories
-These directories must contain agents matching their type:
-- `core/` → type: core
-- `swarm/` → type: swarm
-- `consensus/` → type: consensus
-- `github/` → type: github
-- etc.
+All directories are functional and can contain agents of any type. This allows for flexible organization where agents are grouped by their domain or purpose rather than strictly by type.
 
-#### Functional Directories
-These directories can contain agents of any type:
-- `templates/` - Template generators
-- `sparc/` - SPARC methodology agents
+For example:
+- `consensus/` can contain swarm coordinators, analysis agents, or any type that works with consensus protocols
+- `github/` can contain architecture agents, swarm agents, or any type related to GitHub operations
+- `core/` can contain planning agents, research agents, or any type providing core functionality
+
+Common directories:
+- `core/` - Core functionality agents
+- `swarm/` - Swarm coordination and multi-agent systems
+- `consensus/` - Consensus protocols and distributed systems
+- `github/` - GitHub integration and repository management
+- `testing/` - Testing and validation
+- `architecture/` - System design and architecture
+- `documentation/` - Documentation generation
+- `analysis/` - Code analysis and review
 - `specialized/` - Domain-specific agents
+- `templates/` - Template and boilerplate generators
+- `sparc/` - SPARC methodology agents
 - `hive-mind/` - Collective intelligence
 - `development/` - Development workflow
-- `analysis/` - Analysis and review
+- `devops/` - DevOps and CI/CD
+- `optimization/` - Performance optimization
+- `data/` - Data processing
 
 ## Common Issues and Fixes
 
