@@ -428,8 +428,12 @@ describe('CLI', () => {
       expect(result.output).toContain('not found');
     });
 
-    it('should handle no agents directory', () => {
-      const result = runCLI('validate', join(tempDir, 'empty'));
+    it('should handle no agents directory', async () => {
+      // Create empty directory without .claude/agents
+      const emptyDir = join(tempDir, 'empty');
+      await mkdir(emptyDir, { recursive: true });
+      
+      const result = runCLI('validate', emptyDir);
       expect(result.success).toBe(false);
       expect(result.output).toContain('No agents found');
     });
