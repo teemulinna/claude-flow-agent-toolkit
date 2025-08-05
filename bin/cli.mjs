@@ -34,13 +34,13 @@ program
 
 // Validate command
 program
-    .command('validate')
+    .command('validate [agent-name]')
     .description('Validate agent configurations')
     .option('-d, --dir <directory>', 'Agents directory', '.claude/agents')
     .option('-f, --format <format>', 'Output format (text, json)', 'text')
     .option('-o, --output <file>', 'Output file')
     .option('-v, --verbose', 'Verbose output')
-    .action(async (options) => {
+    .action(async (agentName, options) => {
         const spinner = ora('Validating agents...').start();
         
         try {
@@ -49,7 +49,39 @@ program
                 verbose: options.verbose
             });
             
-            const results = await validator.validateAll();
+            let results;
+            if (agentName && agentName !== '*') {
+                // Validate single agent
+                const agentPath = path.join(path.resolve(options.dir), `${agentName}.md`);
+                const jsonPath = path.join(path.resolve(options.dir), `${agentName}.json`);
+                let filePath;
+                
+                try {
+                    await fs.access(agentPath);
+                    filePath = agentPath;
+                } catch {
+                    try {
+                        await fs.access(jsonPath);
+                        filePath = jsonPath;
+                    } catch {
+                        spinner.fail(`Agent ${agentName} not found`);
+                        process.exit(1);
+                    }
+                }
+                
+                const result = await validator.validateFile(filePath);
+                results = {
+                    total: 1,
+                    valid: result.status === 'valid' ? 1 : 0,
+                    warnings: result.status === 'warning' ? 1 : 0,
+                    errors: result.status === 'error' ? 1 : 0,
+                    details: [result],
+                    typeStats: {}
+                };
+            } else {
+                // Validate all agents (when no name specified or * wildcard)
+                results = await validator.validateAll();
+            }
             spinner.stop();
             
             // Generate report
@@ -81,7 +113,7 @@ program
 
 // Fix command
 program
-    .command('fix')
+    .command('fix [agent-name]')
     .description('Fix common agent configuration issues')
     .option('-d, --dir <directory>', 'Agents directory', '.claude/agents')
     .option('--dry-run', 'Show what would be fixed without making changes')
@@ -90,7 +122,7 @@ program
     .option('--tools-format', 'Fix tools format issues')
     .option('--type-mismatches', 'Fix type mismatches')
     .option('--all', 'Fix all issues')
-    .action(async (options) => {
+    .action(async (agentName, options) => {
         const spinner = ora('Fixing agent issues...').start();
         
         try {
@@ -103,7 +135,18 @@ program
             
             let results;
             
-            if (options.toolsFormat || options.typeMismatches) {
+            if (agentName) {
+                // Fix single agent
+                results = await fixer.fixSingle(agentName);
+                // Convert single result to match expected format
+                results = {
+                    total: 1,
+                    fixed: results.fixed ? 1 : 0,
+                    skipped: results.fixed ? 0 : 1,
+                    errors: results.error ? 1 : 0,
+                    details: [results]
+                };
+            } else if (options.toolsFormat || options.typeMismatches) {
                 results = await fixer.fixSpecificIssues({
                     fixToolsFormat: options.toolsFormat,
                     fixTypeMismatches: options.typeMismatches
@@ -117,6 +160,7 @@ program
             // Show results
             if (options.dryRun) {
                 console.log(chalk.yellow('🔍 Dry run - no changes made'));
+                console.log('Would fix:');
             }
             
             console.log(chalk.bold('\nFix Results:'));
@@ -177,7 +221,7 @@ program
         }
     });
 
-// Create command
+// Create command with additional options
 program
     .command('create <name>')
     .description('Create a new agent')
@@ -187,18 +231,71 @@ program
     .option('--template <template>', 'Use a template')
     .option('--dir <directory>', 'Target directory')
     .option('-i, --interactive', 'Interactive mode')
+    .option('--tools <tools>', 'Comma-separated tools')
+    .option('--prompt <prompt>', 'Create from natural language prompt')
+    .option('--force', 'Overwrite existing agent')
+    .option('--list-templates', 'List available templates')
     .action(async (name, options) => {
+        // Handle --list-templates
+        if (options.listTemplates) {
+            const creator = new AgentCreator();
+            const templates = creator.listTemplates();
+            console.log(chalk.bold('Available Templates:'));
+            templates.forEach(template => {
+                console.log(`  • ${template}`);
+            });
+            process.exit(0);
+        }
         try {
             const creator = new AgentCreator();
+            
+            // Handle prompt-based creation
+            if (options.prompt) {
+                const result = await creator.createFromPrompt({
+                    prompt: options.prompt,
+                    name,
+                    outputDir: options.dir,
+                    force: options.force
+                });
+                console.log(chalk.green(`✅ Created agent from prompt`));
+                console.log(chalk.blue(`📁 Path: ${result}`));
+                return;
+            }
             
             let createOptions = {
                 name,
                 type: options.type,
                 description: options.description,
-                capabilities: options.capabilities ? options.capabilities.split(',') : [],
+                capabilities: options.capabilities ? options.capabilities.split(',').map(c => c.trim()) : [],
                 directory: options.dir,
                 template: options.template
             };
+            
+            // Add tools if specified
+            if (options.tools) {
+                createOptions.config = {
+                    tools: {
+                        allowed: options.tools.split(',').map(t => t.trim()),
+                        restricted: ['Task'],
+                        conditional: []
+                    }
+                };
+            }
+            
+            // Handle templates
+            if (options.template) {
+                const result = await creator.createFromTemplate(options.template, {
+                    name,
+                    description: options.description,
+                    directory: options.dir
+                });
+                
+                console.log(chalk.green(`✅ Created agent from template: ${options.template}`));
+                console.log(chalk.blue(`📁 Path: ${result.relativePath}`));
+                console.log(chalk.blue(`🏷️  Name: ${result.name}`));
+                console.log(chalk.blue(`🎯 Type: ${result.type}`));
+                return;
+            }
             
             // Interactive mode
             if (options.interactive) {
@@ -237,12 +334,27 @@ program
                     }
                 ]);
                 
+                if (responses) {
                 Object.assign(createOptions, responses);
+            }
+            }
+            
+            // Check if agent already exists
+            if (!options.force) {
+                const baseDir = creator.baseDir;
+                const agentPath = path.join(baseDir, '.claude/agents', createOptions.directory || 'core', `${name}.md`);
+                try {
+                    await fs.access(agentPath);
+                    console.error(chalk.red(`❌ Agent ${name} already exists at ${agentPath}`));
+                    process.exit(1);
+                } catch {
+                    // Agent doesn't exist, proceed
+                }
             }
             
             const result = await creator.create(createOptions);
             
-            console.log(chalk.green(`✅ Agent created successfully!`));
+            console.log(chalk.green(`✅ Created agent successfully!`));
             console.log(chalk.blue(`📁 Path: ${result.relativePath}`));
             console.log(chalk.blue(`🏷️  Name: ${result.name}`));
             console.log(chalk.blue(`🎯 Type: ${result.type}`));
@@ -251,6 +363,19 @@ program
             console.error(chalk.red(`❌ ${error.message}`));
             process.exit(1);
         }
+    });
+
+// List templates command
+program
+    .command('list-templates')
+    .description('List available agent templates')
+    .action(() => {
+        const creator = new AgentCreator();
+        const templates = creator.listTemplates();
+        console.log(chalk.bold('Available Templates:'));
+        templates.forEach(template => {
+            console.log(`  • ${template}`);
+        });
     });
 
 // Config command
@@ -284,4 +409,5 @@ program.parse(process.argv);
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
     program.outputHelp();
+    process.exit(0);
 }

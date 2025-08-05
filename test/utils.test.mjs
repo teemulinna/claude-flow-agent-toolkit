@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, it, expect } from 'vitest';
 import {
     extractYamlFrontmatter,
     serializeToFrontmatter,
@@ -20,17 +19,17 @@ type: core
 # Agent content here`;
             
             const [data, remaining] = extractYamlFrontmatter(content);
-            assert.strictEqual(data.name, 'test-agent');
-            assert.strictEqual(data.type, 'core');
-            assert.ok(remaining.includes('# Agent content here'));
+            expect(data.name).toBe('test-agent');
+            expect(data.type).toBe('core');
+            expect(remaining).toContain('# Agent content here');
         });
 
         it('should handle content without frontmatter', () => {
             const content = '# Just markdown content';
             const [data, remaining] = extractYamlFrontmatter(content);
             
-            assert.deepStrictEqual(data, {});
-            assert.strictEqual(remaining, content);
+            expect(data).toEqual({});
+            expect(remaining).toBe(content);
         });
 
         it('should handle invalid YAML gracefully', () => {
@@ -39,7 +38,7 @@ invalid: yaml: content:
 ---`;
             
             const [data, remaining] = extractYamlFrontmatter(content);
-            assert.deepStrictEqual(data, {});
+            expect(data).toEqual({});
         });
     });
 
@@ -49,31 +48,31 @@ invalid: yaml: content:
             const content = '# Agent content';
             
             const result = serializeToFrontmatter(data, content);
-            assert.ok(result.startsWith('---\n'));
-            assert.ok(result.includes('name: test-agent'));
-            assert.ok(result.includes('type: core'));
-            assert.ok(result.includes('# Agent content'));
+            expect(result).toMatch(/^---\n/);
+            expect(result).toContain('name: test-agent');
+            expect(result).toContain('type: core');
+            expect(result).toContain('# Agent content');
         });
     });
 
     describe('determineAgentType', () => {
         it('should use existing type if provided', () => {
             const type = determineAgentType('/any/path.md', { type: 'swarm' });
-            assert.strictEqual(type, 'swarm');
+            expect(type).toBe('swarm');
         });
 
         it('should determine type from directory', () => {
-            assert.strictEqual(determineAgentType('/agents/swarm/agent.md'), 'swarm');
-            assert.strictEqual(determineAgentType('/agents/github/pr.md'), 'github');
+            expect(determineAgentType('/agents/swarm/agent.md')).toBe('swarm');
+            expect(determineAgentType('/agents/github/pr.md')).toBe('github');
         });
 
         it('should determine type from filename', () => {
-            assert.strictEqual(determineAgentType('/agents/misc/swarm-coordinator.md'), 'swarm');
-            assert.strictEqual(determineAgentType('/agents/misc/test-runner.md'), 'testing');
+            expect(determineAgentType('/agents/misc/swarm-coordinator.md')).toBe('swarm');
+            expect(determineAgentType('/agents/misc/test-runner.md')).toBe('testing');
         });
 
         it('should default to core for unknown types', () => {
-            assert.strictEqual(determineAgentType('/agents/misc/unknown.md'), 'core');
+            expect(determineAgentType('/agents/misc/unknown.md')).toBe('core');
         });
     });
 
@@ -90,21 +89,21 @@ invalid: yaml: content:
             };
             
             const result = deepMerge(target, source);
-            assert.strictEqual(result.a, 1);
-            assert.strictEqual(result.b.c, 4);
-            assert.strictEqual(result.b.d, 3);
-            assert.strictEqual(result.b.f, 5);
-            assert.strictEqual(result.g, 6);
-            assert.deepStrictEqual(result.e, [1, 2]);
+            expect(result.a).toBe(1);
+            expect(result.b.c).toBe(4);
+            expect(result.b.d).toBe(3);
+            expect(result.b.f).toBe(5);
+            expect(result.g).toBe(6);
+            expect(result.e).toEqual([1, 2]);
         });
     });
 
     describe('formatFileSize', () => {
         it('should format file sizes correctly', () => {
-            assert.strictEqual(formatFileSize(0), '0 Bytes');
-            assert.strictEqual(formatFileSize(1024), '1 KB');
-            assert.strictEqual(formatFileSize(1048576), '1 MB');
-            assert.strictEqual(formatFileSize(1536), '1.5 KB');
+            expect(formatFileSize(0)).toBe('0 Bytes');
+            expect(formatFileSize(1024)).toBe('1 KB');
+            expect(formatFileSize(1048576)).toBe('1 MB');
+            expect(formatFileSize(1536)).toBe('1.5 KB');
         });
     });
 
@@ -113,9 +112,9 @@ invalid: yaml: content:
             const tools = ['Read', 'Write', 'Bash', 'Task'];
             const result = convertToolsToObject(tools);
             
-            assert.deepStrictEqual(result.allowed, ['Read', 'Write', 'Bash']);
-            assert.deepStrictEqual(result.restricted, ['Task']);
-            assert.deepStrictEqual(result.conditional, []);
+            expect(result.allowed).toEqual(['Read', 'Write', 'Bash']);
+            expect(result.restricted).toEqual(['Task']);
+            expect(result.conditional).toEqual([]);
         });
 
         it('should return object tools unchanged', () => {
@@ -126,7 +125,7 @@ invalid: yaml: content:
             };
             
             const result = convertToolsToObject(tools);
-            assert.deepStrictEqual(result, tools);
+            expect(result).toEqual(tools);
         });
     });
 });

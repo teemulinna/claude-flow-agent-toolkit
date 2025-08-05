@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, it, expect } from 'vitest';
 import { AgentFixer } from '../lib/fixer.mjs';
 import path from 'path';
 import fs from 'fs/promises';
@@ -20,14 +19,14 @@ describe('AgentFixer', () => {
             const fixed = fixer.fixAgent('/test/agent.md', agent);
             
             // Should add all missing required fields
-            assert.ok(fixed.color);
-            assert.ok(fixed.description);
-            assert.ok(fixed.version);
-            assert.ok(fixed.priority);
-            assert.ok(fixed.capabilities);
-            assert.ok(fixed.tools);
-            assert.strictEqual(fixed.version, '1.0.0');
-            assert.strictEqual(fixed.priority, 'medium');
+            expect.ok(fixed.color);
+            expect.ok(fixed.description);
+            expect.ok(fixed.version);
+            expect.ok(fixed.priority);
+            expect.ok(fixed.capabilities);
+            expect.ok(fixed.tools);
+            expect.strictEqual(fixed.version, '1.0.0');
+            expect.strictEqual(fixed.priority, 'medium');
         });
 
         it('should convert array tools to object format', () => {
@@ -40,10 +39,10 @@ describe('AgentFixer', () => {
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
             
-            assert.strictEqual(typeof fixed.tools, 'object');
-            assert.deepStrictEqual(fixed.tools.allowed, ['Read', 'Write', 'Bash']);
-            assert.deepStrictEqual(fixed.tools.restricted, ['Task']);
-            assert.deepStrictEqual(fixed.tools.conditional, []);
+            expect.strictEqual(typeof fixed.tools, 'object');
+            expect.deepStrictEqual(fixed.tools.allowed, ['Read', 'Write', 'Bash']);
+            expect.deepStrictEqual(fixed.tools.restricted, ['Task']);
+            expect.deepStrictEqual(fixed.tools.conditional, []);
         });
 
         it('should fix invalid priority values', () => {
@@ -55,7 +54,7 @@ describe('AgentFixer', () => {
             };
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
-            assert.strictEqual(fixed.priority, 'medium');
+            expect.strictEqual(fixed.priority, 'medium');
         });
 
         it('should fix invalid color format', () => {
@@ -67,7 +66,7 @@ describe('AgentFixer', () => {
             };
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
-            assert.ok(fixed.color.match(/^#[0-9A-F]{6}$/i));
+            expect.ok(fixed.color.match(/^#[0-9A-F]{6}$/i));
         });
 
         it('should add missing tool categories', () => {
@@ -82,8 +81,8 @@ describe('AgentFixer', () => {
             };
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
-            assert.ok(Array.isArray(fixed.tools.restricted));
-            assert.ok(Array.isArray(fixed.tools.conditional));
+            expect.ok(Array.isArray(fixed.tools.restricted));
+            expect.ok(Array.isArray(fixed.tools.conditional));
         });
 
         it('should normalize agent type based on directory', () => {
@@ -94,7 +93,7 @@ describe('AgentFixer', () => {
             };
             
             const fixed = fixer.fixAgent('/agents/core/test.md', agent);
-            assert.strictEqual(fixed.type, 'core');
+            expect.strictEqual(fixed.type, 'core');
         });
 
         it('should add default capabilities based on type', () => {
@@ -107,7 +106,7 @@ describe('AgentFixer', () => {
                 capabilities: []
             };
             const fixedSwarm = fixer.fixAgent('/test/swarm.md', swarmAgent);
-            assert.ok(fixedSwarm.capabilities.includes('coordination'));
+            expect.ok(fixedSwarm.capabilities.includes('coordination'));
             
             // GitHub agent
             const githubAgent = {
@@ -116,7 +115,7 @@ describe('AgentFixer', () => {
                 capabilities: []
             };
             const fixedGithub = fixer.fixAgent('/test/github.md', githubAgent);
-            assert.ok(fixedGithub.capabilities.includes('repository_management'));
+            expect.ok(fixedGithub.capabilities.includes('repository_management'));
         });
 
         it('should fix invalid version format', () => {
@@ -128,7 +127,7 @@ describe('AgentFixer', () => {
             };
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
-            assert.strictEqual(fixed.version, '1.0.0');
+            expect.strictEqual(fixed.version, '1.0.0');
         });
 
         it('should add missing nested structures', () => {
@@ -141,18 +140,18 @@ describe('AgentFixer', () => {
             const fixed = fixer.fixAgent('/test/agent.md', agent);
             
             // Check nested structures exist
-            assert.ok(fixed.triggers);
-            assert.ok(Array.isArray(fixed.triggers.keywords));
-            assert.ok(Array.isArray(fixed.triggers.patterns));
+            expect.ok(fixed.triggers);
+            expect.ok(Array.isArray(fixed.triggers.keywords));
+            expect.ok(Array.isArray(fixed.triggers.patterns));
             
-            assert.ok(fixed.constraints);
-            assert.ok(typeof fixed.constraints.max_file_operations === 'number');
+            expect.ok(fixed.constraints);
+            expect.ok(typeof fixed.constraints.max_file_operations === 'number');
             
-            assert.ok(fixed.communication);
-            assert.ok(Array.isArray(fixed.communication.can_spawn));
+            expect.ok(fixed.communication);
+            expect.ok(Array.isArray(fixed.communication.can_spawn));
             
-            assert.ok(fixed.dependencies);
-            assert.ok(Array.isArray(fixed.dependencies.requires));
+            expect.ok(fixed.dependencies);
+            expect.ok(Array.isArray(fixed.dependencies.requires));
         });
 
         it('should preserve existing valid data', () => {
@@ -168,10 +167,10 @@ describe('AgentFixer', () => {
             
             const fixed = fixer.fixAgent('/test/agent.md', agent);
             
-            assert.strictEqual(fixed.color, '#123456');
-            assert.strictEqual(fixed.description, 'Custom description');
-            assert.ok(fixed.capabilities.includes('custom-capability'));
-            assert.strictEqual(fixed.customField, 'should-be-preserved');
+            expect.strictEqual(fixed.color, '#123456');
+            expect.strictEqual(fixed.description, 'Custom description');
+            expect.ok(fixed.capabilities.includes('custom-capability'));
+            expect.strictEqual(fixed.customField, 'should-be-preserved');
         });
     });
 
@@ -213,8 +212,8 @@ type: core
             
             // Check backup was created
             const backups = await fs.readdir(path.join(agentsDir, '.backup'));
-            assert.ok(backups.length > 0);
-            assert.ok(backups[0].includes('test-agent.md'));
+            expect.ok(backups.length > 0);
+            expect.ok(backups[0].includes('test-agent.md'));
             
             await cleanupTestDir();
         });
@@ -233,9 +232,9 @@ type: core
             // Check no backup directory was created
             try {
                 await fs.access(path.join(agentsDir, '.backup'));
-                assert.fail('Backup directory should not exist');
+                expect.fail('Backup directory should not exist');
             } catch (err) {
-                assert.strictEqual(err.code, 'ENOENT');
+                expect.strictEqual(err.code, 'ENOENT');
             }
             
             await cleanupTestDir();

@@ -8,7 +8,7 @@ import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const cliPath = join(__dirname, '..', 'src', 'cli.mjs');
+const cliPath = join(__dirname, '..', 'bin', 'cli.mjs');
 
 describe('CLI', () => {
   let tempDir;

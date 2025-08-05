@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, it, expect } from 'vitest';
 import { AgentValidator } from '../lib/validator.mjs';
 import { AgentConfig } from '../lib/config.mjs';
 import path from 'path';
@@ -15,7 +14,7 @@ describe('AgentValidator', () => {
             const validConfig = AgentConfig.generateDefaults('test-agent', 'core');
             
             const errors = validator.validateConfig(validConfig);
-            assert.strictEqual(errors.length, 0);
+            expect(errors.length).toBe(0);
         });
 
         it('should detect missing required fields', () => {
@@ -27,8 +26,8 @@ describe('AgentValidator', () => {
             };
             
             const errors = validator.validateConfig(incompleteConfig);
-            assert.ok(errors.length > 0);
-            assert.ok(errors.some(e => e.includes('Missing required field')));
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(e => e.includes('Missing required field'))).toBe(true);
         });
 
         it('should validate agent name format', () => {
@@ -39,7 +38,7 @@ describe('AgentValidator', () => {
             };
             
             const errors = validator.validateConfig(invalidNameConfig);
-            assert.ok(errors.some(e => e.includes('must be kebab-case')));
+            expect(errors.some(e => e.includes('must be kebab-case'))).toBe(true);
         });
 
         it('should validate agent type', () => {
@@ -50,7 +49,7 @@ describe('AgentValidator', () => {
             };
             
             const errors = validator.validateConfig(invalidTypeConfig);
-            assert.ok(errors.some(e => e.includes('Invalid type')));
+            expect(errors.some(e => e.includes('Invalid type'))).toBe(true);
         });
 
         it('should validate color format', () => {
@@ -61,7 +60,7 @@ describe('AgentValidator', () => {
             };
             
             const errors = validator.validateConfig(invalidColorConfig);
-            assert.ok(errors.some(e => e.includes('must be a valid hex color')));
+            expect(errors.some(e => e.includes('must be a valid hex color'))).toBe(true);
         });
 
         it('should validate tools structure', () => {
@@ -72,7 +71,7 @@ describe('AgentValidator', () => {
             };
             
             const errors = validator.validateConfig(invalidToolsConfig);
-            assert.ok(errors.some(e => e.includes('tools') && e.includes('must be an object')));
+            expect(errors.some(e => e.includes('tools') && e.includes('must be an object'))).toBe(true);
         });
     });
 
@@ -83,7 +82,7 @@ describe('AgentValidator', () => {
             const agentData = { type: 'swarm' };
             
             const errors = validator.validateDirectory(filePath, agentData);
-            assert.strictEqual(errors.length, 0);
+            expect(errors.length).toBe(0);
         });
 
         it('should enforce type matching in strict directories', () => {
@@ -92,8 +91,8 @@ describe('AgentValidator', () => {
             const agentData = { type: 'swarm' };
             
             const errors = validator.validateDirectory(filePath, agentData);
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].includes('should have type \'core\''));
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors[0]).toContain('should have type \'core\'');
         });
     });
 
@@ -106,7 +105,7 @@ describe('AgentValidator', () => {
             };
             
             const warnings = validator.checkWarnings(config);
-            assert.ok(warnings.some(w => w.includes('No capabilities defined')));
+            expect(warnings.some(w => w.includes('No capabilities defined'))).toBe(true);
         });
 
         it('should warn about missing triggers', () => {
@@ -122,7 +121,7 @@ describe('AgentValidator', () => {
             };
             
             const warnings = validator.checkWarnings(config);
-            assert.ok(warnings.some(w => w.includes('No trigger patterns defined')));
+            expect(warnings.some(w => w.includes('No trigger patterns defined'))).toBe(true);
         });
     });
 });
