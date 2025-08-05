@@ -5,7 +5,10 @@
   "type": "module",
   "main": "src/index.mjs",
   "bin": {
-    "agent-toolkit": "./src/cli.mjs"
+    "agent-toolkit": "./bin/cli.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "validate": "node src/cli.mjs validate",
