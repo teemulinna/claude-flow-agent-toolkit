@@ -426,6 +426,26 @@ program
         }
     });
 
+// Claude Flow Hooks subcommand
+program
+    .command('claude-flow-hooks <cmd>')
+    .description('Hook management CLI')
+    .allowUnknownOption()
+    .action(async (cmd, options, command) => {
+        const { execSync } = await import('child_process');
+        const hooksCliPath = path.join(__dirname, '..', 'src', 'hooks-cli.mjs');
+        
+        try {
+            const args = command.args.slice(1); // Remove 'claude-flow-hooks' from args
+            const remainingArgs = process.argv.slice(process.argv.indexOf(cmd));
+            const fullCommand = `node "${hooksCliPath}" ${remainingArgs.join(' ')}`;
+            execSync(fullCommand, { stdio: 'inherit', cwd: process.cwd() });
+        } catch (error) {
+            console.error(chalk.red('Hook management failed:'), error.message);
+            process.exit(1);
+        }
+    });
+
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
     program.outputHelp();
