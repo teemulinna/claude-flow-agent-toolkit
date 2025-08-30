@@ -1,6 +1,6 @@
 {
   "name": "@aigentics/agent-toolkit",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Comprehensive toolkit for validating and managing Claude Flow agent systems",
   "type": "module",
   "main": "src/index.mjs",
@@ -20,6 +20,8 @@
     "auto-fix-hooks": "node src/auto-fix-hooks.mjs",
     "fix-hooks-interactive": "node src/interactive-fix-hooks.mjs",
     "smart-fix-hooks": "node src/smart-fix-hooks.mjs",
+    "enhanced-smart-fix": "node src/enhanced-smart-fix.mjs",
+    "restore-mcp": "node src/restore-legitimate-mcp.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

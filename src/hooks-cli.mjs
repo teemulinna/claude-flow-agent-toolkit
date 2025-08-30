@@ -218,6 +218,31 @@ program
     }
   });
 
+// Restore MCP command
+program
+  .command('restore-mcp')
+  .description('Restore legitimate MCP usage that was incorrectly commented')
+  .option('-d, --dir <directory>', 'Agents directory', '.claude/agents')
+  .action(async (options) => {
+    const spinner = ora('Restoring legitimate MCP usage...').start();
+    
+    try {
+      const restorePath = path.join(__dirname, 'restore-legitimate-mcp.mjs');
+      const agentsDir = path.resolve(options.dir || '.claude/agents');
+      const result = execSync(`node "${restorePath}" "${agentsDir}"`, {
+        cwd: process.cwd(),
+        encoding: 'utf8'
+      });
+      
+      spinner.succeed('MCP restoration completed');
+      console.log(result);
+    } catch (error) {
+      spinner.fail('MCP restoration failed');
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
 // Help command with examples
 program
   .command('help-examples')
