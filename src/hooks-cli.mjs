@@ -4,6 +4,7 @@ import { program } from 'commander';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { execSync } from 'child_process';
@@ -26,7 +27,8 @@ program
     const spinner = ora('Validating agent hooks...').start();
     
     try {
-      const result = execSync('node src/fix-hooks.mjs', { 
+      const fixHooksPath = path.join(__dirname, 'fix-hooks.mjs');
+      const result = execSync(`node "${fixHooksPath}"`, { 
         cwd: process.cwd(),
         encoding: 'utf8'
       });
@@ -63,7 +65,9 @@ program
     const spinner = ora('Auto-fixing agent hooks...').start();
     
     try {
-      const command = options.dryRun ? 'node src/fix-hooks.mjs' : 'node src/auto-fix-hooks.mjs';
+      const fixHooksPath = path.join(__dirname, 'fix-hooks.mjs');
+      const autoFixPath = path.join(__dirname, 'auto-fix-hooks.mjs');
+      const command = options.dryRun ? `node "${fixHooksPath}"` : `node "${autoFixPath}"`;
       const result = execSync(command, { 
         cwd: process.cwd(),
         encoding: 'utf8'
@@ -87,7 +91,8 @@ program
     const spinner = ora('Running smart contextual fixes...').start();
     
     try {
-      const result = execSync('node src/smart-fix-hooks.mjs', { 
+      const smartFixPath = path.join(__dirname, 'smart-fix-hooks.mjs');
+      const result = execSync(`node "${smartFixPath}"`, { 
         cwd: process.cwd(),
         encoding: 'utf8'
       });
@@ -110,7 +115,8 @@ program
     console.log(chalk.gray('This will guide you through fixing each agent individually.\n'));
     
     try {
-      execSync('node src/interactive-fix-hooks.mjs', { 
+      const interactivePath = path.join(__dirname, 'interactive-fix-hooks.mjs');
+      execSync(`node "${interactivePath}"`, { 
         cwd: process.cwd(),
         stdio: 'inherit'
       });
@@ -128,7 +134,8 @@ program
     const spinner = ora('Gathering hook system status...').start();
     
     try {
-      const result = execSync('node src/fix-hooks.mjs', { 
+      const fixHooksPath = path.join(__dirname, 'fix-hooks.mjs');
+      const result = execSync(`node "${fixHooksPath}"`, { 
         cwd: process.cwd(),
         encoding: 'utf8'
       });
