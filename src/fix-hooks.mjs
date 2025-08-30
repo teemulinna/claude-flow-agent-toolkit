@@ -9,8 +9,9 @@ const __dirname = path.dirname(__filename);
 
 // Hook validation and fixing utility for Claude Flow agents
 class HookFixer {
-  constructor() {
-    this.agentsDir = path.join(__dirname, '..', '.claude', 'agents');
+  constructor(agentsDir) {
+    // Use provided agentsDir or default to current working directory
+    this.agentsDir = agentsDir || path.join(process.cwd(), '.claude', 'agents');
     this.issues = [];
     this.fixed = [];
   }
@@ -194,5 +195,7 @@ class HookFixer {
 }
 
 // Run the analysis
-const fixer = new HookFixer();
+// Get agents directory from command line argument or default
+const agentsDir = process.argv[2] || path.join(process.cwd(), '.claude', 'agents');
+const fixer = new HookFixer(agentsDir);
 await fixer.analyzeAndFix();

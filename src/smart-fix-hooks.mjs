@@ -9,8 +9,9 @@ const __dirname = path.dirname(__filename);
 
 // Smart hook fixing utility that understands agent types and contexts
 class SmartHookFixer {
-  constructor() {
-    this.agentsDir = path.join(__dirname, '..', '.claude', 'agents');
+  constructor(agentsDir) {
+    // Use provided agentsDir or default to current working directory
+    this.agentsDir = agentsDir || path.join(process.cwd(), '.claude', 'agents');
     this.fixed = [];
     this.skipped = [];
     this.errors = [];
@@ -296,5 +297,7 @@ $1`,
 }
 
 // Run the smart fixer
-const fixer = new SmartHookFixer();
+// Get agents directory from command line argument or default
+const agentsDir = process.argv[2] || path.join(process.cwd(), '.claude', 'agents');
+const fixer = new SmartHookFixer(agentsDir);
 await fixer.smartFixAll();
