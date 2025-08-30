@@ -11,32 +11,35 @@ npm install -g @aigentics/agent-toolkit
 npx @aigentics/agent-toolkit
 ```
 
-### **Available CLI Commands**
+### **📊 Complete Command Inventory (13 Total Commands)**
 
-#### **🔧 Hook Management CLI**
+#### **🔧 Hook Management CLI (7 Commands)**
 ```bash
-# Comprehensive hook validation and management
-npx @aigentics/agent-toolkit claude-flow-hooks --help
+# 🔍 Validation & Status
+npx @aigentics/agent-toolkit claude-flow-hooks validate     # Comprehensive hook validation
+npx @aigentics/agent-toolkit claude-flow-hooks status       # Quick health overview
 
-# Common hook management workflows:
-npx @aigentics/agent-toolkit claude-flow-hooks validate    # Validate all hooks
-npx @aigentics/agent-toolkit claude-flow-hooks status      # Quick status overview  
-npx @aigentics/agent-toolkit claude-flow-hooks auto-fix    # Automatic safe fixes
-npx @aigentics/agent-toolkit claude-flow-hooks smart-fix   # Context-aware fixes
-npx @aigentics/agent-toolkit claude-flow-hooks interactive # Guided fixing
-npx @aigentics/agent-toolkit claude-flow-hooks restore     # Restore from backups
+# 🔧 Automatic Fixing
+npx @aigentics/agent-toolkit claude-flow-hooks auto-fix      # Safe automatic fixes
+npx @aigentics/agent-toolkit claude-flow-hooks smart-fix     # AI context-aware fixes
+npx @aigentics/agent-toolkit claude-flow-hooks interactive   # Guided manual fixing
+
+# 💾 Safety & Recovery
+npx @aigentics/agent-toolkit claude-flow-hooks restore       # Restore from backups
+npx @aigentics/agent-toolkit claude-flow-hooks help-examples # Usage workflows
 ```
 
-#### **🎯 Agent Management CLI**
+#### **🤖 Agent Management CLI (6 Commands)**
 ```bash
-# Full agent system management
-npx @aigentics/agent-toolkit agent-toolkit --help
+# 🔍 Validation & Analysis
+npx @aigentics/agent-toolkit agent-toolkit validate         # Validate agent configs
+npx @aigentics/agent-toolkit agent-toolkit analyze          # System analysis
+npx @aigentics/agent-toolkit agent-toolkit config           # Show configuration
 
-# Agent management workflows:
-npx @aigentics/agent-toolkit agent-toolkit validate       # Validate agents
-npx @aigentics/agent-toolkit agent-toolkit fix           # Fix agent issues
-npx @aigentics/agent-toolkit agent-toolkit analyze       # System analysis
-npx @aigentics/agent-toolkit agent-toolkit create        # Create new agents
+# 🔧 Creation & Fixing
+npx @aigentics/agent-toolkit agent-toolkit create           # Create new agents
+npx @aigentics/agent-toolkit agent-toolkit fix             # Fix agent issues
+npx @aigentics/agent-toolkit agent-toolkit list-templates  # Show templates
 ```
 
 ## 🎯 **Quick Start Workflow**
@@ -74,29 +77,30 @@ npx @aigentics/agent-toolkit claude-flow-hooks status
 npx @aigentics/agent-toolkit claude-flow-hooks validate
 ```
 
-## 📊 **Command Reference**
+## 📊 **Complete Command Reference (13 Commands Total)**
 
-### **Hook Management Commands**
+### **🔧 Hook Management Commands (7 Commands)**
 
-| Command | Description | Use Case |
-|---------|-------------|----------|
-| `validate` | Comprehensive hook validation | Initial assessment, post-fix verification |
-| `status` | Quick status overview | Regular health checks |
-| `auto-fix` | Automatic safe fixes | Bulk fixing of common issues |
-| `smart-fix` | Context-aware intelligent fixes | Complex scenarios requiring AI decisions |
-| `interactive` | Guided manual fixing | Precise control over changes |
-| `restore` | Restore from backups | Emergency rollback |
-| `help-examples` | Usage examples and workflows | Learning and reference |
+| Command | Options | Description | Primary Use Case |
+|---------|---------|-------------|------------------|
+| **`validate`** | `-v, --verbose` | Comprehensive hook validation | Initial assessment, post-fix verification |
+| **`status`** | | Quick health overview with metrics | Daily/weekly health checks |
+| **`auto-fix`** | `--dry-run` | Automatic safe fixes | Bulk fixing of common issues |
+| **`smart-fix`** | `--verbose` | AI context-aware intelligent fixes | Complex scenarios needing intelligence |
+| **`interactive`** | | Guided fixing with approval workflow | Precise control over each change |
+| **`restore`** | `--confirm` | Restore from .backup files | Emergency rollback scenarios |
+| **`help-examples`** | | Usage examples and workflows | Learning and quick reference |
 
-### **Agent Management Commands**
+### **🤖 Agent Management Commands (6 Commands)**
 
-| Command | Description | Use Case |
-|---------|-------------|----------|
-| `validate [agent]` | Validate agent configurations | Quality assurance |
-| `fix [agent]` | Fix agent configuration issues | Error resolution |
-| `analyze` | System-wide analysis | Performance optimization |
-| `create [name]` | Create new agents | Development workflow |
-| `list-templates` | Show available templates | Agent development |
+| Command | Key Options | Description | Primary Use Case |
+|---------|-------------|-------------|------------------|
+| **`validate`** | `-d, -f json, -o file, -v, [name]` | Validate agent configurations | Quality assurance, CI/CD integration |
+| **`fix`** | `--dry-run, --all, --tools-format` | Fix agent configuration issues | Error resolution, maintenance |
+| **`analyze`** | `-f json, -o file` | System-wide analysis with insights | Performance optimization, planning |
+| **`create`** | `-t type, -i, --template, --tools` | Create new agents from templates | Development workflow, prototyping |
+| **`list-templates`** | | Show all available agent templates | Discovery, planning new agents |
+| **`config`** | | Show current configuration info | Debugging, environment validation |
 
 ## 🛠 **Development Integration**
 
